@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import pprint
-import os
+import sys
 
 class color:
    PURPLE = '\033[95m'
@@ -13,6 +13,7 @@ class color:
    BOLD = '\033[1m'
    UNDERLINE = '\033[4m'
    END = '\033[0m'
+
 
 def sort_stories_by_votes(hnlist):
     return sorted(hnlist, key=lambda x: x['votes'], reverse=True)
@@ -31,6 +32,7 @@ def create_custom_hn(links, subtext):
                     hn.append({"title": title, "link": href, "votes": points})
     return sort_stories_by_votes(hn)
 
+
 def requesting_webpages(i):
     # requesting the web page without accessing the browser
     response = requests.get(f"https://news.ycombinator.com/news?p={i}")
@@ -41,17 +43,28 @@ def requesting_webpages(i):
     subtext = soup.select(".subtext")
     return links,subtext
 
+
+def writing_to_file(news):
+    try:
+        with open(f"{sys.argv[1]}.txt",mode="w") as filename:
+            for i in news:
+                file=filename.write(f"{i['title']}\n{i['link']}\n{i['votes']}\n\n")
+    except:
+        pass
+
 def main():
     megalinks,megasubtext=[],[]
-    for i in range(0,24):
+    for i in range(0,5):
         links,subtext=requesting_webpages(i)
         megalinks+=links
         megasubtext+=subtext
     news=create_custom_hn(megalinks,megasubtext)
+    writing_to_file(news)
     for i in news:
         print(color.GREEN + i['title'] + color.END)
         print(color.UNDERLINE + color.BLUE + i['link'] + color.END)
         print(color.YELLOW + str(i['votes']) + color.END,end='\n\n')
+
 
 if __name__=="__main__":
     main()
