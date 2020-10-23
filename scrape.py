@@ -54,7 +54,7 @@ def writing_to_file(news):
 
 def main():
     megalinks,megasubtext=[],[]
-    for i in range(0,5):
+    for i in range(0,25):
         links,subtext=requesting_webpages(i)
         megalinks+=links
         megasubtext+=subtext
