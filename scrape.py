@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import pprint
+import os
 
 class color:
    PURPLE = '\033[95m'
@@ -13,42 +14,47 @@ class color:
    UNDERLINE = '\033[4m'
    END = '\033[0m'
 
-# requesting the web page without accessing the browser
-response = requests.get("https://news.ycombinator.com/")
-# parser basically changes one type of data into another
-soup = BeautifulSoup(response.text, 'html.parser')
-# returns a list of all elements having class storylink
-links = soup.select(".storylink")
-votes = soup.select(".score")
-# print(links)
-
-
 def sort_stories_by_votes(hnlist):
     return sorted(hnlist, key=lambda x: x['votes'], reverse=True)
 
 
-def create_custom_hn(links, votes):
+def create_custom_hn(links, subtext):
     hn = []
-    count = 0
+    count=input("Number of upvotes: ")
     for idx, item in enumerate(links):
-        if soup.select(".subtext")[idx].select(".score"):
             title = links[idx].getText()  # gets the title of the link
             href = links[idx].get("href")  # gets the link
-            vot = int(votes[count].getText().replace(" points", ""))
-            if vot > 100:
-                hn.append({"title": title, "link": href, "votes": vot})
-            count += 1
+            vot= subtext[idx].select(".score")
+            if len(vot):
+                points = int(vot[0].getText().replace(" points", ""))
+                if points > int(count):
+                    hn.append({"title": title, "link": href, "votes": points})
     return sort_stories_by_votes(hn)
 
+def requesting_webpages(i):
+    # requesting the web page without accessing the browser
+    response = requests.get(f"https://news.ycombinator.com/news?p={i}")
+    #  parser basically changes one type of data into another
+    soup = BeautifulSoup(response.text, 'html.parser')
+    #  returns a list of all elements having class storylink
+    links = soup.select(".storylink")
+    subtext = soup.select(".subtext")
+    return links,subtext
 
-news=create_custom_hn(links,votes)
-for i in news:
-    print(color.GREEN + i['title'] + color.END)
-    # print(i['title'])
-    print(color.UNDERLINE + color.BLUE + i['link'] + color.END)
-    # print(i['link'])
-    print(color.YELLOW + str(i['votes']) + color.END,end='\n\n')
-    # print(i['votes'],end="\n\n")
+def main():
+    megalinks,megasubtext=[],[]
+    for i in range(0,24):
+        links,subtext=requesting_webpages(i)
+        megalinks+=links
+        megasubtext+=subtext
+    news=create_custom_hn(megalinks,megasubtext)
+    for i in news:
+        print(color.GREEN + i['title'] + color.END)
+        print(color.UNDERLINE + color.BLUE + i['link'] + color.END)
+        print(color.YELLOW + str(i['votes']) + color.END,end='\n\n')
+
+if __name__=="__main__":
+    main()
 
 # pprint.pprint(create_custom_hn(links, votes))
 # print(votes[0].getText()) gets the text inside the tags
